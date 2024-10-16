@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor de números reales a representación IEEE 754</title>
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <h1>Convertidor de números reales a representación IEEE 754</h1>
+    <form id="converter-form">
+        <label for="number-input">Ingrese un número de tipo number:</label>
+        <input type="number" step="any" id="number-input" name="number" required>
+        <button type="submit">Convertir</button>
+    </form>
+
+    <h2>Parte entera</h2>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>Valor</th>
+                <th>Divisor</th>
+                <th>Cociente</th>
+                <th>Residuo</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+    
+    <div id="binary-result"></div> <!-- Resultado de la parte entera -->
+
+    <h2>Parte fraccionaria</h2>
+    <table id="fraction-table">
+        <thead>
+            <tr>
+                <th>Valor</th>
+                <th>Multiplicador</th>
+                <th>Producto</th>
+                <th>Digito</th>
+            </tr>
+        </thead>
+        <tbody id="fraction-table-body"></tbody>
+    </table>
+
+    <h2>Representación IEEE 754</h2>
+    <table id="ieee754-table">
+        <thead>
+            <tr>
+                <th>Signo</th>
+                <th>Exponente</th>
+                <th>Mantisa</th>
+            </tr>
+        </thead>
+        <tbody id="ieee754-body"></tbody>
+    </table>
+    
+    <div id="ieee754-binary"></div> <!-- Representación binaria IEEE 754 completa -->
+
+    <script>
+        document.getElementById('converter-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const inputNumber = parseFloat(document.getElementById('number-input').value);
+            const integerPart = Math.floor(inputNumber);
+            const fractionalPart = inputNumber - integerPart;
+
+            // Limpiar la tabla y el resultado previo
+            const tableBody = document.getElementById('table-body');
+            const fractionTableBody = document.getElementById('fraction-table-body');
+            const binaryResult = document.getElementById('binary-result');
+            const ieee754Body = document.getElementById('ieee754-body');
+            const ieee754Binary = document.getElementById('ieee754-binary');
+
+            tableBody.innerHTML = '';
+            fractionTableBody.innerHTML = '';
+            binaryResult.innerHTML = '';
+            ieee754Body.innerHTML = '';
+            ieee754Binary.innerHTML = '';
+
+            // Parte entera
+            let binary = '';
+            let value = integerPart;
+            while (value > 0) {
+                const divisor = 2;
+                const cociente = Math.floor(value / divisor);
+                const residuo = value % divisor;
+
+                const row = `<tr>
+                    <td>${value}</td>
+                    <td>${divisor}</td>
+                    <td>${cociente}</td>
+                    <td>${residuo}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+
+                binary = residuo + binary;
+                value = cociente;
+            }
+
+            // Mostrar el resultado binario de la parte entera
+            binaryResult.innerHTML = `<strong>Resultado Parte Entera:</strong> ${binary}`;
+
+            // Parte fraccionaria
+            let fractionValue = fractionalPart;
+            let digit;
+            const precision = 16;
+
+            for (let i = 0; i < 4; i++) { // Cambia a 4 o más iteraciones según necesites
+                const multiplier = 2;
+                const product = (fractionValue * multiplier).toPrecision(precision);
+                digit = Math.floor(product);
+
+                const fractionRow = `<tr>
+                    <td>${fractionValue.toPrecision(precision)}</td>
+                    <td>${multiplier}</td>
+                    <td>${product}</td>
+                    <td>${digit}</td>
+                </tr>`;
+                fractionTableBody.innerHTML += fractionRow;
+
+                fractionValue = product - digit;
+            }
+
+            // Conversión a formato IEEE 754 de 32 bits
+            const ieee754BinaryString = floatToIEEE754(inputNumber); 
+            const ieee754Details = ieee754BinaryString.match(/(.)(.{8})(.{23})/); 
+            const signo = ieee754Details[1];
+            const exponente = ieee754Details[2];
+            const mantisa = ieee754Details[3];
+
+            ieee754Body.innerHTML = `
+                <tr>
+                    <td>${signo}</td>
+                    <td>${exponente}</td>
+                    <td>${mantisa}</td>
+                </tr>
+            `;
+
+            ieee754Binary.innerHTML = `<strong>Representación Binaria Completa IEEE 754 (32 bits):</strong> ${ieee754BinaryString}`;
+        });
+
+        function floatToIEEE754(num) {
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setFloat32(0, num);
+
+            let result = '';
+            for (let i = 0; i < 4; i++) { 
+                let bits = view.getUint8(i).toString(2); 
+                bits = bits.padStart(8, '0'); 
+                result += bits;
+            }
+
+            return result;
+        }
+    </script>
+</body>
+</html>
