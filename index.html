@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor de números reales a representación IEEE 754</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Convertidor de IEEE 754</h1>
+    <form id="converter-form">
+        <label for="number-input">Ingrese un número:</label>
+        <input type="number" step="any" id="number-input" required>
+        <button type="submit">Convertir</button>
+    </form>
+
+    <h2>Parte Entera</h2>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>Valor</th>
+                <th>Divisor</th>
+                <th>Cociente</th>
+                <th>Residuo</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+    <div id="integer-result" style="text-align: center;"></div>
+
+    <h2>Parte Fraccionaria</h2>
+    <table id="fraction-table">
+        <thead>
+            <tr>
+                <th>Valor</th>
+                <th>Multiplicador</th>
+                <th>Producto</th>
+                <th>Digito</th>
+            </tr>
+        </thead>
+        <tbody id="fraction-table-body"></tbody>
+    </table>
+    <div id="fraction-result" style="text-align: center;"></div>
+
+    <h2>Representación IEEE 754</h2>
+    <table id="ieee754-table">
+        <thead>
+            <tr>
+                <th>Signo</th>
+                <th>Exponente</th>
+                <th>Mantisa</th>
+            </tr>
+        </thead>
+        <tbody id="ieee754-body"></tbody>
+    </table>
+
+    <div class="checkbox-container">
+        <div class="checkbox-group" id="checkbox-row-signo"></div>
+        <div class="checkbox-group" id="checkbox-row-exponente"></div>
+        <div class="checkbox-group" id="checkbox-row-mantisa"></div>
+    </div>
+
+    <script>
+        document.getElementById('converter-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const inputNumber = parseFloat(document.getElementById('number-input').value);
+            console.log("Número ingresado:", inputNumber);
+
+            const integerPart = Math.floor(inputNumber);
+            const fractionalPart = inputNumber - integerPart;
+
+            // Limpiar la tabla
+            document.getElementById('table-body').innerHTML = '';
+            document.getElementById('fraction-table-body').innerHTML = '';
+            document.getElementById('ieee754-body').innerHTML = '';
+            document.getElementById('checkbox-row-signo').innerHTML = '';
+            document.getElementById('checkbox-row-exponente').innerHTML = '';
+            document.getElementById('checkbox-row-mantisa').innerHTML = '';
+
+            // Parte entera
+            let binary = '';
+            let value = integerPart;
+
+            while (value > 0) {
+                const divisor = 2;
+                const cociente = Math.floor(value / divisor);
+                const residuo = value % divisor;
+
+                const row = `<tr>
+                    <td>${value}</td>
+                    <td>${divisor}</td>
+                    <td>${cociente}</td>
+                    <td>${residuo}</td>
+                </tr>`;
+                document.getElementById('table-body').innerHTML += row;
+
+                binary = residuo + binary;
+                value = cociente;
+            }
+
+            console.log("Parte entera en binario:", binary);
+            document.getElementById('integer-result').innerHTML = `<strong>Resultado Parte Entera:</strong> ${binary}`;
+
+            // Parte fraccionaria
+            let fractionValue = fractionalPart;
+            let digit;
+            const precision = 16;
+
+            for (let i = 0; i < 4; i++) {
+                const multiplier = 2;
+                const product = (fractionValue * multiplier).toPrecision(precision);
+                digit = Math.floor(product);
+
+                const fractionRow = `<tr>
+                    <td>${fractionValue.toPrecision(precision)}</td>
+                    <td>${multiplier}</td>
+                    <td>${product}</td>
+                    <td>${digit}</td>
+                </tr>`;
+                document.getElementById('fraction-table-body').innerHTML += fractionRow;
+
+                fractionValue = product - digit;
+            }
+
+            //document.getElementById('fraction-result').innerHTML = `<strong>Resultado Parte Fraccionaria:</strong> ${fractionValue.toPrecision(precision)}`;
+
+            // Conversión a formato IEEE 754 de 32 bits
+            const ieee754BinaryString = floatToIEEE754(inputNumber);
+            console.log("Representación binaria de 32 bits:", ieee754BinaryString);
+
+            // Desglose del IEEE 754
+            const ieee754Details = ieee754BinaryString.match(/(.)(.{8})(.{23})/);
+            const signo = ieee754Details[1];
+            const exponente = ieee754Details[2];
+            const mantisa = ieee754Details[3];
+
+            // Mostrar en la tabla IEEE 754
+            document.getElementById('ieee754-body').innerHTML = `
+                <tr>
+                    <td>${signo}</td>
+                    <td>${exponente}</td>
+                    <td>${mantisa}</td>
+                </tr>
+            `;
+
+            // Generar checkboxes
+            // Checkbox para el signo (solo uno)
+            document.getElementById('checkbox-row-signo').innerHTML = `
+                <input type="checkbox" ${signo === '1' ? 'checked' : ''}>
+            `;
+            
+            // Checkboxes para el exponente (8 checkboxes)
+            for (let i = 0; i < exponente.length; i++) {
+                document.getElementById('checkbox-row-exponente').innerHTML += `
+                    <input type="checkbox" ${exponente[i] === '1' ? 'checked' : ''}>
+                `;
+            }
+
+            // Checkboxes para la mantisa (24 checkboxes)
+            for (let i = 0; i < mantisa.length; i++) {
+                document.getElementById('checkbox-row-mantisa').innerHTML += `
+                    <input type="checkbox" ${mantisa[i] === '1' ? 'checked' : ''}>
+                `;
+            }
+        });
+
+        function floatToIEEE754(num) {
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setFloat32(0, num);
+
+            let result = '';
+            for (let i = 0; i < 4; i++) {
+                let bits = view.getUint8(i).toString(2);
+                bits = bits.padStart(8, '0');
+                result += bits;
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
