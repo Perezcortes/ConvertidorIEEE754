@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #435564;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
+
+form {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+input[type="number"] {
+    padding: 8px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+table {
+    width: 60%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.checkbox-container {
+    display: flex; /* Alinea los contenedores de checkbox en horizontal */
+    justify-content: center; /* Centra los checkbox */
+    margin: 20px 10; /* Espacio superior e inferior */
+}
+
+.checkbox-group {
+    display: flex; /* Alinea los checkboxes en horizontal dentro de cada grupo */
+    align-items: center; /* Centra verticalmente los checkbox */
+    margin: 0 25px; /* Espacio entre grupos */
+}
+
+.checkbox-group input {
+    margin: 1; /* Espacio entre checkbox */
+    transform: scale(1); /* Tamaño del checkbox */
+}
